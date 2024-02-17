@@ -66,7 +66,7 @@ void renderTiles(gb *cpu) {
                         getColour(2, palette), getColour(3, palette)};
 
     // Now I have to render the line, pixel by pixel
-    for (BYTE pixel = 0; pixel < 160; pixel++) {
+    for (BYTE pixel = 0; pixel < 160;) {
         BYTE xPos = pixel + scrollX;
 
         if ((lcd_control & 0x08) != 0)
@@ -107,17 +107,20 @@ void renderTiles(gb *cpu) {
         BYTE data1 = readMemory(cpu, tileLocation + line);
         BYTE data2 = readMemory(cpu, tileLocation + line + 1);
 
-        BYTE colourBit = xPos % 8;
+        SIGNED_BYTE colourBit = (xPos & 0x7);
         colourBit -= 7;
         colourBit *= -1;
 
-        BYTE colourNum = (data2 >> (colourBit)) & 0x1;
-        colourNum <<= 1;
-        colourNum |= ((data1 >> (colourBit)) & 0x1);
+        for(; colourBit >= 0; colourBit--) {
+            BYTE colourNum = (data2 >> (colourBit)) & 0x1;
+            colourNum <<= 1;
+            colourNum |= ((data1 >> (colourBit)) & 0x1);
 
-        BYTE col = colorMap[colourNum];
+            BYTE col = colorMap[colourNum];
 
-        cpu->screenData[currentLine][pixel] = col;
+            cpu->screenData[currentLine][pixel] = col;
+            pixel++;
+        }
     }
 }
 
@@ -152,6 +155,12 @@ void renderSprites(gb *cpu) {
         BYTE yFlip = attributes & 0x40;
         BYTE xFlip = attributes & 0x20;
 
+        WORD colourAddress;
+        if ((attributes & 0x10) != 0)
+            colourAddress = 0xFF49;
+        else
+            colourAddress = 0xFF48;
+
         // does this sprite intercept with the scanline?
         BYTE line = currentLine - yPos;
 
@@ -169,6 +178,19 @@ void renderSprites(gb *cpu) {
         // its easier to read in from right to left as pixel 0 is
         // bit 7 in the colour data, pixel 1 is bit 6 etc...
         for (SIGNED_BYTE tilePixel = 7; tilePixel >= 0; tilePixel--) {
+            SIGNED_BYTE xPix = 0 - tilePixel;
+            xPix += 7;
+            BYTE pixel = xPos + (BYTE)xPix;
+
+            if (pixel > 160 || currentLine > 144)
+                continue;
+
+            // check if pixel is hidden behind background
+            if ((attributes & 0x80) != 0 &&
+                cpu->screenData[currentLine][pixel] != 0) {
+                continue;
+            }
+
             /*Should do some refactoring for avoiding this signed pixel*/
             SIGNED_BYTE colourbit = tilePixel;
             // read the sprite in backwards for the x axis
@@ -185,27 +207,9 @@ void renderSprites(gb *cpu) {
             if (colourNum == 0)
                 continue;
 
-            WORD colourAddress;
-            if ((attributes & 0x10) != 0)
-                colourAddress = 0xFF49;
-            else
-                colourAddress = 0xFF48;
-
             BYTE palette = readMemory(cpu, colourAddress);
             BYTE col = getColour(colourNum, palette);
 
-            SIGNED_BYTE xPix = 0 - tilePixel;
-            xPix += 7;
-            BYTE pixel = xPos + (BYTE)xPix;
-
-            if (pixel > 160 || currentLine > 144)
-                continue;
-
-            // check if pixel is hidden behind background
-            if ((attributes & 0x80) != 0 &&
-                cpu->screenData[currentLine][pixel] != 0) {
-                continue;
-            }
             /*I can draw the pixel*/
             cpu->screenData[currentLine][pixel] = col;
         }

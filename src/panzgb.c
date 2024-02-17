@@ -20,11 +20,13 @@ void doScreenshoot(SDL_Renderer *renderer) {
     SDL_FreeSurface(sshot);
 }
 
-void renderScreen(gb *cpu, SDL_Renderer *rend, SDL_Surface *surface) {
+void renderScreen(gb *cpu, SDL_Renderer *rend) {
     int x, y;
     int j;
     SDL_Rect rectangle;
     rectangle.h = SCALE;
+    SDL_SetRenderDrawColor(rend, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(rend);
     for (y = 0; y < 144; y++) {
         for (x = 0; x < 160; x++) {
             BYTE color = getPixelColor(cpu, x, y);
@@ -34,15 +36,11 @@ void renderScreen(gb *cpu, SDL_Renderer *rend, SDL_Surface *surface) {
             rectangle.x = x * SCALE;
             rectangle.y = y * SCALE;
             x = j - 1;
-            SDL_FillRect(surface, &rectangle,
-                         SDL_MapRGBA(surface->format, color, color, color, 0));
+            SDL_SetRenderDrawColor(rend, color, color, color, SDL_ALPHA_OPAQUE);
+            SDL_RenderFillRect(rend, &rectangle);
         }
     }
-    /*I probably can do better than this every frame*/
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(rend, surface);
-    SDL_RenderCopy(rend, texture, NULL, NULL);
     SDL_RenderPresent(rend);
-    SDL_DestroyTexture(texture);
 }
 
 void getInput(gb *cpu, SDL_Renderer *rend) {
@@ -102,11 +100,9 @@ int main(int argc, char **argv) {
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_Window *window = SDL_CreateWindow("panz-gb", SDL_WINDOWPOS_UNDEFINED,
                                           SDL_WINDOWPOS_UNDEFINED, 160 * SCALE,
-                                          144 * SCALE, SDL_WINDOW_OPENGL);
+                                          144 * SCALE, 0);
     SDL_Renderer *renderer =
         SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Surface *surface =
-        SDL_CreateRGBSurface(0, 160 * SCALE, 144 * SCALE, 32, 0, 0, 0, 0);
 
     gameboy = newGameboy(argv[1]);
     if (!gameboy) {
@@ -120,7 +116,7 @@ int main(int argc, char **argv) {
         while (numOperation < NUM_OP_60HZ)
             numOperation += executeGameBoy(gameboy);
         numOperation -= NUM_OP_60HZ;
-        renderScreen(gameboy, renderer, surface);
+        renderScreen(gameboy, renderer);
         float deltaT =
             (float)1000 / (59.7) - (float)(SDL_GetTicks() - timeStartFrame);
         if (deltaT > 0)
