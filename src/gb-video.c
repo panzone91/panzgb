@@ -175,6 +175,8 @@ void renderSprites(gb *cpu) {
         BYTE data1 = readMemory(cpu, dataAddress);
         BYTE data2 = readMemory(cpu, dataAddress + 1);
 
+        BYTE palette = readMemory(cpu, colourAddress);
+
         // its easier to read in from right to left as pixel 0 is
         // bit 7 in the colour data, pixel 1 is bit 6 etc...
         for (SIGNED_BYTE tilePixel = 7; tilePixel >= 0; tilePixel--) {
@@ -207,7 +209,6 @@ void renderSprites(gb *cpu) {
             if (colourNum == 0)
                 continue;
 
-            BYTE palette = readMemory(cpu, colourAddress);
             BYTE col = getColour(colourNum, palette);
 
             /*I can draw the pixel*/

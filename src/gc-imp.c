@@ -104,7 +104,7 @@ void keyPressed(gb *cpu, int key) {
         button = 0;
 
     BYTE keyReq = cpu->memory[0xFF00];
-    BYTE requestInterupt = 1;
+    BYTE requestInterupt = 0;
 
     // only request interupt if the button just pressed is
     // the style of button the game is interested in

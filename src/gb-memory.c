@@ -1,6 +1,4 @@
 #include "gb-impl.h"
-#include <string.h>
-#include <stdio.h>
 
 /*This function assumes that the ROM is already loaded*/
 
@@ -20,7 +18,6 @@ void setGbBanking(gb *cpu) {
         cpu->changeBank = mbc3_changeBank;
         break;
     }
-
     cpu->currentRAMBank = 0;
 }
 
