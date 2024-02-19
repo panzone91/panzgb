@@ -1,18 +1,8 @@
 #include "gb-impl.h"
 
-BYTE getColour(BYTE colourNum, BYTE palette) {
-    BYTE hi = 0;
-    BYTE lo = 0;
-
-    lo = colourNum * 2;
-    hi = lo+1;
-
+inline BYTE getColour(BYTE colourNum, BYTE palette) {
     // use the palette to get the colour
-    BYTE colour = 0;
-    colour = ((palette >> (hi)) & 0x1) << 1;
-    colour |= ((palette >> (lo)) & 0x1);
-
-    return colour;
+    return (palette >> (colourNum * 2)) & 0x3;
 }
 
 void renderTiles(gb *cpu) {
@@ -291,17 +281,16 @@ void updateLCD(gb *cpu) {
 
 void handleGraphic(gb *cpu, BYTE cycles) {
     updateLCD(cpu);
-    BYTE lcd_control = readMemory(cpu, LCD_REG_CONTROL);
+    BYTE lcd_control = cpu->memory[LCD_REG_CONTROL];
 
-    if ((lcd_control & 0x80) != 0) {
-        cpu->clockScanline -= cycles;
-    } else
+    if ((lcd_control & 0x80) == 0) {
         return;
-
+    }
+    cpu->clockScanline -= cycles;
     if (cpu->clockScanline <= 0) {
         cpu->memory[LCD_SCANLINE_ADRR]++;
-        BYTE currentline = readMemory(cpu, LCD_SCANLINE_ADRR);
-        cpu->clockScanline = 456;
+        BYTE currentline = cpu->memory[LCD_SCANLINE_ADRR];
+        cpu->clockScanline += 456;
 
         /*V-blank interrupt*/
         if (currentline == 144)
