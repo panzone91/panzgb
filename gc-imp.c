@@ -50,6 +50,7 @@ void initGameBoy(gb *cpu) {
     cpu->cpuHalted = 1;
     cpu->whenDisableInterrupts = 0;
     cpu->keymap = 0xFF;
+    cpu->soundMasterClock = GB_CLOCK / 44100;
 
     setGbBanking(cpu);
 }
@@ -145,6 +146,7 @@ BYTE executeGameBoy(gb *cpu) {
     increaseTimer(cpu, numClock);
     handleInterrupts(cpu);
     handleGraphic(cpu, numClock);
+    handleSound(cpu, numClock);
 
     return numClock;
 }
@@ -161,4 +163,10 @@ gb *newGameboy(char *rom) {
 
 char *getGameName(gb *cpu) {
     return (char *)cpu->cartridge + NAME_CART;
+}
+
+BYTE *getSoundData(gb *cpu, unsigned int *len) {
+    *len = cpu->numerOfBytes;
+    cpu->numerOfBytes = 0;
+    return cpu->soundData;
 }

@@ -76,6 +76,9 @@ void writeMemory(gb *cpu, WORD addr, BYTE data) {
         cpu->memory[LCD_SCANLINE_ADRR] = 0;
     else if (addr == DMA_ADRR)
         DMATransfert(cpu, data);
+    else if((addr >= 0xFF10) && (addr <= 0xFF3F)){
+        writeSoundRegistry(cpu, addr, data);
+    }
     else
         cpu->memory[addr] = data;
 }

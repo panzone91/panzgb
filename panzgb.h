@@ -48,4 +48,6 @@ void changeKeyState(gb *cpu, BYTE key, BYTE state);
 BYTE getPixelColor(gb *cpu, BYTE x, BYTE y);
 
 void setGbBanking(gb *cpu);
+
+BYTE* getSoundData(gb *cpu, unsigned int* size);
 #endif

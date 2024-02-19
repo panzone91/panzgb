@@ -102,13 +102,25 @@ int main(int argc, char **argv) {
                                           SDL_WINDOWPOS_UNDEFINED, 160 * SCALE,
                                           144 * SCALE, 0);
     SDL_Renderer *renderer =
-        SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        SDL_CreateRenderer(window, -1, 0);
+
+    SDL_AudioSpec want, obtained;
+
+    want.freq = 44100;
+    want.format = AUDIO_U8;
+    want.channels = 2;
+    want.samples = 2048;
+    want.callback = NULL;
+
+    SDL_AudioDeviceID audioDeviceId = SDL_OpenAudioDevice(NULL, 0, &want, &obtained, 0);
+    SDL_PauseAudioDevice(audioDeviceId, 0);
 
     gameboy = newGameboy(argv[1]);
     if (!gameboy) {
         fprintf(stderr, "Error on memory allocation\n");
         exit(EXIT_FAILURE);
     }
+
     unsigned int numOperation = 0;
     while (1) {
         unsigned int timeStartFrame = SDL_GetTicks();
@@ -117,6 +129,14 @@ int main(int argc, char **argv) {
             numOperation += executeGameBoy(gameboy);
         numOperation -= NUM_OP_60HZ;
         renderScreen(gameboy, renderer);
+
+        unsigned int soundDataSize = 0;
+        BYTE* soundData = getSoundData(gameboy,&soundDataSize);
+
+        if(soundDataSize != 0) {
+            SDL_QueueAudio(audioDeviceId, soundData, soundDataSize);
+        }
+
         float deltaT =
             (float)1000 / (59.7) - (float)(SDL_GetTicks() - timeStartFrame);
         if (deltaT > 0)

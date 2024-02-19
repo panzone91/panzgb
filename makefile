@@ -1,6 +1,6 @@
-SOURCES = $(wildcard src/*.c)
+SOURCES = $(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
-COMPILER_FLAGS = -c -O2 -std=c99 -Wall -Wextra -pedantic
+COMPILER_FLAGS = -c -g -std=c99 -Wall -Wextra -pedantic
 EXECUTABLE = panzgb
 
 CC = clang
@@ -16,8 +16,8 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(INCLUDE_PATHS) $(COMPILER_FLAGS) $< -o $@
 
 clean:
-	@rm src/*.o
+	@rm *.o
 
 clobber:
-	@rm src/*.o
+	@rm *.o
 	@rm panzgb

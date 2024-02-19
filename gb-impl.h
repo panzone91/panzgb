@@ -74,6 +74,15 @@
         l = (_hi << 8) | l;                                                    \
     } while (0);
 
+struct audio_channel {
+    int pos;
+    int period_clock;
+    int length_timer;
+    int env_vol;
+    int env_dir;
+    int env_sweep_pace;
+};
+
 struct gameboy {
     BYTE cartridge[CARTRIDGE_SIZE];
     BYTE memory[MEMORY_SIZE];
@@ -126,6 +135,19 @@ struct gameboy {
     BYTE keymap;
 
     void (*changeBank)(gb *, WORD, BYTE);
+
+    struct audio_channel channel_1;
+    struct audio_channel channel_2;
+    struct audio_channel channel_3;
+    struct audio_channel channel_4;
+
+    BYTE soundData[2048];
+    WORD numerOfBytes;
+
+    SIGNED_WORD leftSoundBuffer, rightSoundBuffer;
+    int soundMasterClock;
+    int soundFrameClock;
+    int soundFramePos;
 };
 
 BYTE readMemory(gb *cpu, WORD addr);
@@ -150,5 +172,9 @@ unsigned int extendedOpcodes(gb *cpu, BYTE opcode);
 
 void writeSaveRam(gb *cpu);
 void loadSaveRam(gb *cpu);
+
+void handleSound(gb *cpu, BYTE clocks);
+
+void writeSoundRegistry(gb *cpu, WORD addr, BYTE data);
 
 #endif

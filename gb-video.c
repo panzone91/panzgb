@@ -1,6 +1,6 @@
 #include "gb-impl.h"
 
-inline BYTE getColour(BYTE colourNum, BYTE palette) {
+ BYTE getColour(BYTE colourNum, BYTE palette) {
     // use the palette to get the colour
     return (palette >> (colourNum * 2)) & 0x3;
 }
