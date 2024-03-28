@@ -4,9 +4,5 @@ panzgb
 .idea
 *.gb
 .DS_Store
-CMakeCache.txt
-src/psv/CMakeFiles
-panzgb-psv.vpk
-src/psv/panzgb-psv*
-*.cmake
-src/psv/Makefile
+build/
+cmake-*
